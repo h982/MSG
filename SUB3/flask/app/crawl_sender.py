@@ -17,30 +17,29 @@ class ReviewPreprocessor:
             os.mkdir(self.dir_path)
         self.ssh_manager.mkdir(self.remote_path)
         
+        
     def process(self, file_path):
-        google = pd.read_csv(file_path)
-
+        google_reviews = pd.read_csv(file_path)
         file_names = list()
-        for i in range(len(google)):
-            temp = google.loc[i]
-            reviews = self.cleanReview(temp.google_review_txt)
-            file_names.append(self.writeReviews(temp.google_keyword, reviews))
+        for store_reviews in google_reviews:
+            review_list = self.clean_review(store_reviews.google_review_txt)
+            file_names.append(self.write_reviews(store_reviews.google_keyword, review_list))
+        
         self.sshOperation(file_names)
 
-    def cleanReview(self, reviews):
+        
+    def clean_review(self, reviews):
         review_list = reviews[1:-1].split(',')
-        ret_list = list()
-
-        for i in range(len(review_list)):
-            clean = self.hangul.sub('', review_list[i])
-            spacing = ' '.join(clean.split())
+        clean_review_list = list()
+        for review in review_list:
+            cleaned_review = self.hangul.sub('', review)
+            trimmed_review = ' '.join(cleaned_review.split())
             if len(spacing) != 0:
-                ret_list.append(spacing)
+                clean_review_list.append(trimmed_review)
+        return clean_review_list
 
-        return ret_list
 
-
-    def writeReviews(self, store_name, reviews):
+    def write_reviews(self, store_name, reviews):
         file_name = store_name + '.txt'
         with open(os.path.join(self.dir_path, file_name), 'w') as file:
             for review in reviews:
